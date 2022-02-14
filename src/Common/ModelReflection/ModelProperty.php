@@ -93,7 +93,10 @@ class ModelProperty
         }
 
 		if ($this->docBlock->hasAnnotation(AnnotationEnum::VARIABLE) && !Validation::isEmpty($this->docBlock->getFirstAnnotation(AnnotationEnum::VARIABLE))) {
-			$annotatedType = $this->docBlock->getFirstAnnotation(AnnotationEnum::VARIABLE);
+			$annotatedType = preg_replace('/\s/', '', $this->docBlock->getFirstAnnotation(AnnotationEnum::VARIABLE));
+			if($this->isNullable($annotatedType)) {
+				$annotatedType = $this->removeNullable($annotatedType);
+			}
 		}
 
 		$this->type = new ModelPropertyType($propertyType, $annotatedType, $parentNS);
@@ -104,6 +107,37 @@ class ModelProperty
 			$this->isRequired = true;
 			$this->requiredActions = $this->docBlock->getAnnotation(AnnotationEnum::REQUIRED);
 		}
+	}
+
+	/**
+	 * Checks if the given type is nullable
+	 *
+	 * @param string $type type name from the phpdoc param
+	 *
+	 * @return boolean True if it is nullable
+	 */
+	protected function isNullable($type)
+	{
+		return stripos('|' . $type . '|', '|null|') !== false;
+	}
+
+	/**
+	 * Remove the 'null' section of a type
+	 *
+	 * @param string $type type name from the phpdoc param
+	 *
+	 * @return string The new type value
+	 */
+	protected function removeNullable($type)
+	{
+		if ($type === null) {
+			return null;
+		}
+
+		return substr(
+			str_ireplace('|null|', '|', '|' . $type . '|'),
+			1, -1
+		);
 	}
 
 	protected function isSimpleType($type)
