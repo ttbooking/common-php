@@ -88,6 +88,10 @@ class Validation {
 	 * @return boolean|mixed
 	 */
 	public static function filterBoolean($value) {
+		if (is_null($value)) {
+        	return null;
+        }
+		
 		$boolValue = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
         if(!is_null($boolValue) && preg_match('/(true|false)/i', $value)) {
             $value = $boolValue;
